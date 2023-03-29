@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "DeepLPTM"
+version = "0.0.1"
+authors = [
+  { name="Remi Boutin", email="remi.boutin.stat@gmail.com" },
+]
+description = "Implementation of the deep latent positions and topics model (Deep-LPTM)"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/Remi-Boutin/DeepLPTM-package"
+"Bug Tracker" = "https://github.com/Remi-Boutin/DeepLPTM-package/issues"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/docs",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/DeepLPTM/"]
