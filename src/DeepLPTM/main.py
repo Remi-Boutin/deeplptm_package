@@ -1,7 +1,21 @@
+import distutils.util
+import argparse
+
+
+def add_bool_arg(parser, name, required = False, default=False, help=None):
+    # To obtain boolean features using --name (True) or --no-name (False) but
+    # with both arguments mutually exclusive (they cannot be provided at the same time)
+    group = parser.add_mutually_exclusive_group(required=required)
+    group.add_argument('--' + name, dest=name, action='store_true', help=help)
+    group.add_argument('--no-' + name, dest=name, action='store_false', help='--' + name + ' is set to False')
+    parser.set_defaults(**{name: default})
+
 
 if __name__ == '__main__':
     import os
-    import argparse
+    import sys
+    sys.path.append('C:/Users/remib/Documents/2022/deeplptm_package/src/')
+    print('haha')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-K', type=int, help='Number of topics', required=True)
@@ -9,14 +23,14 @@ if __name__ == '__main__':
     parser.add_argument('-P', type=int, help='Number of node clusters', default=2)
     parser.add_argument('--data_path', help='path to the binary adjacency matrix (in a adjacency.csv file),'
                                             ' the texts (in a texts.csv file)', required=True)
-    parser.add_argument('--save_results', type=bool, help='Whether to save the results or not', required=True)
+    add_bool_arg(parser, 'save_results', default=True, required=True)
     parser.add_argument('--save_path', type=str, help='path where the results should be saved', default=None)
-    parser.add_argument('--clusters_provided', type=bool,
-                        help='whether the clusters are provided (in clusters.csv in the data_path folder)', default=False)
-    parser.add_argument('--topics_provided', type=bool,
-                        help='whether the topics are provided (in topics.csv file in the data_path folder)', default=False)
+    add_bool_arg(parser, 'clusters_provided', default=False,
+                 help='whether the clusters are provided (in clusters.csv in the data_path folder)')
+    add_bool_arg(parser, 'topics_provided', default=False,
+                 help='whether the topics are provided (in topics.csv file in the data_path folder)')
     parser.add_argument('--init_type', type=str, help='type of initialisation for tau',
-                        choices=['dissimilarity', 'random', 'kmeans'], default='dissimilarity', required=True)
+                        choices=['dissimilarity', 'random', 'deeplpm', 'load'], default='dissimilarity', required=True)
     parser.add_argument('--init_path', type=str,
                         help="Path to the node cluster memberships, required and useful only if init_type=='load'")
     parser.add_argument('--max_iter', type=int,
@@ -24,24 +38,25 @@ if __name__ == '__main__':
     parser.add_argument('--tol', type=float, help='if the norm of the difference of two consecutives'
                                                   ' node cluster positions is lower than the tolerance,'
                                                   ' the algorithm stops.', default=1e-3)
-    parser.add_argument('--initialise_etm', type=bool,
-                        help='Whether to train a new instance of ETM or not', default=False, required=True)
+
+    add_bool_arg(parser, 'initialise_etm', default=False, help='Train a new instance of ETM')
     parser.add_argument('--etm_init_epochs', type=int,
                         help='Number of epochs to train the new ETM instance', default=80)
     parser.add_argument('--seed', type=int, help='seed', default=2023)
-    parser.add_argument('--preprocess_texts', type=bool, help='whether to preprocess texts or not', default=True)
+    add_bool_arg(parser, 'preprocess_texts', default=True, help='preprocess the texts to initialise ETM')
     parser.add_argument('--max_df', type=float,
                         help='maximum document frequency of words kept in vocabulary', default=1.0)
     parser.add_argument('--min_df', type=float,
                         help='minimum document frequency of words kept in vocabulary', default=0.0)
     parser.add_argument('--etm_batch_size_init', type=int, help='Batch size during topic modelling init', default=30)
-    parser.add_argument('--use_pretrained_emb', type=bool,
-                        help='Use pre trained embeddings (should be pre-trained before hand)', default=False)
+    add_bool_arg(parser, 'pretrained_emb', default=False,
+                 help='Use pre trained embeddings (should be pre-trained before hand)')
     parser.add_argument('--pretrained_emb_path', type=str,
                         help=" Path to the pretrained embeddings, required and useful if use_pretrained_emb == 'True'")
-    parser.add_argument('--use', type=str, choices=['all', 'texts', 'network'],
+    parser.add_argument('--use', type=str, choices=['all'], #ToDo : add the following parts 'texts', 'network',
                         help='Which part of the model to use', default='all')
-    meta_args, _ = parser.parse_known_args()
+
+    meta_args = parser.parse_args()
 
     print('Number of clusters Q = {}'.format(meta_args.Q),
           'number of topics K = {}'.format(meta_args.K),
@@ -49,7 +64,8 @@ if __name__ == '__main__':
           'save results : {}'.format(meta_args.save_results),
           'initialise ETM : {}'.format(meta_args.initialise_etm))
 
-    from src.DeepLPTM.model import deeplptm
+    from DeepLPTM.model import deeplptm
+
     import pandas as pd
 
     # Load the data in the data_path folder

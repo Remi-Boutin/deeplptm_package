@@ -17,6 +17,7 @@ python main.py -K 3 -Q 4 --data_path <i>data_path</i> --save_results <i>True</i>
 Other arguments can be provided.
 
 
+
 ## Function
 To use the package in a script, the following arguments are required:
 - ``adj``: (array) binary adjacency matrix of the directed graph
