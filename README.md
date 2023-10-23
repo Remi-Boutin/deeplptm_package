@@ -11,8 +11,8 @@ Note that the folder at the *data_path* location is assumed to hold the binary a
 
 
 <code>
-python main.py -K 3 -Q 4 --data_path <i>data_path</i> --save_results <i>True</i>
---save_path <i>results_path</i>  --init_type <i>dissimilarity</i> --max_iter 10 --tol 0.001  --initialise_etm <i>True</i>
+python main.py -K 3 -Q 4 --data_path <i>data_path</i> --save_results 
+--save_path <i>results_path</i>  --init_type <i>dissimilarity</i> --max_iter 10 --tol 0.001  --initialise_etm
 </code>
 Other arguments can be provided.
 

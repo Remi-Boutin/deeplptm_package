@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "DeepLPTM"
 version = "0.0.1"
 authors = [
-  { name="Remi Boutin", email="remi.boutin.stat@gmail.com" },
+  { name="anonymous"},
 ]
 description = "Implementation of the deep latent positions and topics model (Deep-LPTM)"
 readme = "README.md"
@@ -18,9 +18,6 @@ classifiers = [
 ]
 
 
-[project.urls]
-"Homepage" = "https://github.com/Remi-Boutin/DeepLPTM-package"
-"Bug Tracker" = "https://github.com/Remi-Boutin/DeepLPTM-package/issues"
 
 [tool.hatch.build.targets.sdist]
 exclude = [

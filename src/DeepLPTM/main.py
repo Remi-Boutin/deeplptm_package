@@ -4,7 +4,7 @@ import argparse
 
 def add_bool_arg(parser, name, required = False, default=False, help=None):
     # To obtain boolean features using --name (True) or --no-name (False) but
-    # with both arguments mutually exclusive (they cannot be provided at the same time)
+    # with both arguments mutually exclusive (True and False cannot be provided at the same time)
     group = parser.add_mutually_exclusive_group(required=required)
     group.add_argument('--' + name, dest=name, action='store_true', help=help)
     group.add_argument('--no-' + name, dest=name, action='store_false', help='--' + name + ' is set to False')
@@ -15,7 +15,6 @@ if __name__ == '__main__':
     import os
     import sys
     sys.path.append('C:/Users/remib/Documents/2022/deeplptm_package/src/')
-    print('haha')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-K', type=int, help='Number of topics', required=True)

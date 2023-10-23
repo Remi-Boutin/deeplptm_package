@@ -1,4 +1,4 @@
-import os
+ximport os
 os.environ["OMP_NUM_THREADS"] = '1'
 import torch
 import torch.nn as nn
@@ -169,20 +169,20 @@ class deepLPM(nn.Module):
                    + torch.norm(mu_K - mu_phi, dim=1, keepdim=True) ** 2 / torch.exp(log_cov_K)
             KL[:, k] = 0.5 * temp.squeeze()
 
-        denominator = torch.sum(pi_k.unsqueeze(0) * torch.exp(-KL), axis=1, dtype = torch.float32)
+        denominator = torch.sum(pi_k.unsqueeze(0) * torch.exp(-KL), dim=1, dtype = torch.float32)
         for k in range(args.num_clusters):
             self.gamma.data[:, k] = pi_k[k] * torch.exp(-KL[:, k]) / denominator + det
 
     def update_others(self, mu_phi, log_cov_phi, gamma, P):
-        N_k = torch.sum(gamma, axis=0, dtype = torch.float32)
+        N_k = torch.sum(gamma, dim=0, dtype = torch.float32)
 
         self.pi_k.data = N_k / args.num_points
 
         for k in range(args.num_clusters):
             gamma_k = gamma[:, k]  # N * 1
-            self.mu_k.data[k] = torch.sum(mu_phi * gamma_k.unsqueeze(1), axis=0, dtype = torch.float32) / N_k[k]
-            mu_k = self.mu_k
+            #self.mu_k.data[k] = torch.sum(mu_phi * gamma_k.unsqueeze(1), axis=0, dtype = torch.float32) / N_k[k]
+            #mu_k = self.mu_k
 
-            diff = P * torch.exp(log_cov_phi) + torch.sum((mu_k[k].unsqueeze(0) - mu_phi) ** 2, axis=1, dtype = torch.float32).unsqueeze(1)
-            cov_k = torch.sum(gamma_k.unsqueeze(1) * diff, axis=0, dtype = torch.float32) / (P * N_k[k])
+            diff = P * torch.exp(log_cov_phi) + torch.sum((mu_k[k].unsqueeze(0) - mu_phi) ** 2, dim=1, dtype = torch.float32).unsqueeze(1)
+            cov_k = torch.sum(gamma_k.unsqueeze(1) * diff, dim=0, dtype = torch.float32) / (P * N_k[k])
             self.log_cov_k.data[k] = torch.log(cov_k)
