@@ -1,7 +1,7 @@
-### CONFIGS ###
-# Data selected from:
-# simulated data: 'simuA': LPCM; 'simuB': SBM; 'simuC': circle data;
-# real data: 'eveques'; 'cora'.
+#########################################################
+#                   Deep LPM parameters                 #
+#########################################################
+
 dataset = 'bbc'
 model = 'deepLPM'
 

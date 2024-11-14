@@ -1,19 +1,14 @@
 import torch
-import torch.nn.functional as F
 from torch.optim import Adam
-from torch.optim.lr_scheduler import StepLR
-import scipy.sparse as sp
-import numpy as np
 import os
 import time
-from sklearn.cluster import KMeans
 from sklearn.metrics.cluster import adjusted_rand_score
 import matplotlib.pyplot as plt
 
 from .input_data import load_data
 from .preprocessing import *
 from . import model
-from . import args
+from DeepLPTM import args
 
 # Train on CPU or GPU
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
@@ -21,7 +16,7 @@ device = torch.device('cuda:0')  # GPU
 # print(torch.cuda.is_available())
 # print(device)
 # os.environ['CUDA_VISIBLE_DEVICES'] = ""  # CPU
-print('Number of clusters:.................'+str(args.num_clusters))
+print('Number of clusters:.................' + str(args.num_clusters))
 
 
 ##################### Load data ########################
@@ -166,7 +161,7 @@ def visu():
     f, ax = plt.subplots(1, figsize=(15, 10))
     ax.scatter(out[:, 0], out[:, 1], color=labelC)
     # ax.scatter(mean[:, 0], mean[:, 1], color='black', s=50)
-    ax.set_title('PCA result of embeddings of DeepLPM (K='+str(args.num_clusters)+')', fontsize=18)
+    ax.set_title('PCA result of embeddings of DeepLPM (K=' + str(args.num_clusters) + ')', fontsize=18)
     plt.show()
     # f.savefig("C:/Users/Dingge/Desktop/results/emb_ARVGA.pdf", bbox_inches='tight')
 
@@ -191,7 +186,7 @@ for epoch in range(args.num_epoch):
         log_cov_k = model.log_cov_k
         mu_k = model.mu_k
         model.update_gamma(mu_phi.detach().clone(),
-                           log_cov_phi.detach().clone(), 
+                           log_cov_phi.detach().clone(),
                            pi_k, mu_k, log_cov_k, args.hidden2_dim)
 
     pi_k = model.pi_k                    # pi_k should be a copy of model.pi_k
@@ -274,7 +269,7 @@ plt.title("Training loss in total")
 
 plt.show()
 
-print('Min loss:', torch.min(store_loss), 'K='+str(args.num_clusters), str(args.use_nodes)+str(args.use_edges))
+print('Min loss:', torch.min(store_loss), 'K=' + str(args.num_clusters), str(args.use_nodes) + str(args.use_edges))
 if args.dataset != 'eveques':
     print('Max ARI:', max(store_ari))
 print('alpha, beta:', model.alpha, model.beta)

@@ -7,7 +7,7 @@ from torch.optim import Adam
 import itertools
 
 import numpy as np
-from deepLPM_main import args
+from DeepLPTM import args
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics.cluster import adjusted_rand_score
 import matplotlib.pyplot as plt

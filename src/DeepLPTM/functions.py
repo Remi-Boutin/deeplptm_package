@@ -83,7 +83,7 @@ def load_data(data_path, scenario, args=None):
 
 def DeepLPM_format(adj, args):
     from scipy import sparse as sp
-    from deepLPM_main.preprocessing import preprocess_graph, sparse_to_tuple
+    from DeepLPTM.deepLPM_main.preprocessing import preprocess_graph, sparse_to_tuple
     from deepLPM_main import model as Model
     features = np.zeros((adj.shape[0], args.input_dim))
     np.fill_diagonal(features, 1)

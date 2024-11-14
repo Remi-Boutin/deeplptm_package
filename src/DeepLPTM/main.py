@@ -1,5 +1,5 @@
-import distutils.util
 import argparse
+import os
 
 
 def add_bool_arg(parser, name, required = False, default=False, help=None):
@@ -12,50 +12,99 @@ def add_bool_arg(parser, name, required = False, default=False, help=None):
 
 
 if __name__ == '__main__':
-    import os
-    import sys
-    sys.path.append('C:/Users/remib/Documents/2022/deeplptm_package/src/')
-    print('haha')
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-K', type=int, help='Number of topics', required=True)
-    parser.add_argument('-Q', type=int, help='Number of node clusters', required=True)
-    parser.add_argument('-P', type=int, help='Number of node clusters', default=2)
-    parser.add_argument('--data_path', help='path to the binary adjacency matrix (in a adjacency.csv file),'
-                                            ' the texts (in a texts.csv file)', required=True)
-    add_bool_arg(parser, 'save_results', default=True, required=True)
-    parser.add_argument('--save_path', type=str, help='path where the results should be saved', default=None)
-    add_bool_arg(parser, 'clusters_provided', default=False,
-                 help='whether the clusters are provided (in clusters.csv in the data_path folder)')
-    add_bool_arg(parser, 'topics_provided', default=False,
-                 help='whether the topics are provided (in topics.csv file in the data_path folder)')
-    parser.add_argument('--init_type', type=str, help='type of initialisation for tau',
-                        choices=['dissimilarity', 'random', 'deeplpm', 'load'], default='dissimilarity', required=True)
-    parser.add_argument('--init_path', type=str,
-                        help="Path to the node cluster memberships, required and useful only if init_type=='load'")
-    parser.add_argument('--max_iter', type=int,
-                        help='Maximum number of iterations if the convergence has not been reached', default=50)
-    parser.add_argument('--tol', type=float, help='if the norm of the difference of two consecutives'
-                                                  ' node cluster positions is lower than the tolerance,'
-                                                  ' the algorithm stops.', default=1e-3)
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    add_bool_arg(parser, 'initialise_etm', default=False, help='Train a new instance of ETM')
-    parser.add_argument('--etm_init_epochs', type=int,
-                        help='Number of epochs to train the new ETM instance', default=80)
-    parser.add_argument('--seed', type=int, help='seed', default=2023)
-    add_bool_arg(parser, 'preprocess_texts', default=True, help='preprocess the texts to initialise ETM')
-    parser.add_argument('--max_df', type=float,
-                        help='maximum document frequency of words kept in vocabulary', default=1.0)
-    parser.add_argument('--min_df', type=float,
-                        help='minimum document frequency of words kept in vocabulary', default=0.0)
-    parser.add_argument('--etm_batch_size_init', type=int, help='Batch size during topic modelling init', default=30)
-    add_bool_arg(parser, 'pretrained_emb', default=False,
-                 help='Use pre trained embeddings (should be pre-trained before hand)')
-    parser.add_argument('--pretrained_emb_path', type=str,
-                        help=" Path to the pretrained embeddings, required and useful if use_pretrained_emb == 'True'")
-    parser.add_argument('--use', type=str, choices=['all'], #ToDo : add the following parts 'texts', 'network',
-                        help='Which part of the model to use', default='all')
+    # Required arguments
+    requiredNamed = parser.add_argument_group('required arguments')
+    requiredNamed.add_argument('-i', '--input', help='Input file name', required=True, default=argparse.SUPPRESS)
+    requiredNamed.add_argument('-K', type=int, help='Number of topics', required=True, default=argparse.SUPPRESS)
+    requiredNamed.add_argument('-Q', type=int, help='Number of node clusters', required=True, default=argparse.SUPPRESS)
+    requiredNamed.add_argument(
+        '--data_path',
+        help='path to the binary adjacency matrix (in a adjacency.csv file), the texts (in a texts.csv file)',
+        required=True, default=argparse.SUPPRESS
+    )
+    add_bool_arg(
+        requiredNamed, 'save_results', default=True, required=True
+    )
 
+    # Optional arguments
+    parser.add_argument(
+        '-P', type=int, help='Number of node clusters', default=2
+    )
+    parser.add_argument(
+        '--save_path', type=str, help='path where the results should be saved', default=None
+    )
+    add_bool_arg(
+        parser, 'clusters_provided', default=False,
+        help='whether the clusters are provided (in clusters.csv in the data_path folder)'
+    )
+    add_bool_arg(
+        parser, 'topics_provided', default=False,
+        help='whether the topics are provided (in topics.csv file in the data_path folder)'
+    )
+    parser.add_argument(
+        '--init_type', type=str, help='type of initialisation for tau',
+        choices=['dissimilarity', 'random', 'deeplpm', 'load'], default='dissimilarity', required=False
+    )
+    parser.add_argument(
+        '--init_path', type=str, required=False, default=argparse.SUPPRESS,
+        help="Path to the node cluster memberships, required and useful only if init_type=='load'",
+    )
+    parser.add_argument(
+        '--max_iter', type=int, required=False,
+        help='Maximum number of iterations if the convergence has not been reached', default=50
+    )
+    parser.add_argument(
+        '--tol', type=float, default=1e-3,
+        help='if the norm of the difference of two consecutives node cluster positions is lower than the tolerance,'
+             ' the algorithm stops.',
+    )
+    add_bool_arg(
+        parser, 'initialise_etm', default=False, help='Train a new instance of ETM', required=False,
+    )
+    parser.add_argument(
+        '--etm_init_epochs', type=int, help='Number of epochs to train the new ETM instance', default=80,
+        required=False,
+    )
+    parser.add_argument(
+        '--seed', type=int, help='seed', default=2023, required=False
+    )
+    add_bool_arg(
+        parser, 'preprocess_texts', default=True, help='preprocess the texts to initialise ETM', required=False
+    )
+    parser.add_argument(
+        '--max_df', type=float, help='maximum document frequency of words kept in vocabulary', default=1.0,
+        required=False
+    )
+    parser.add_argument(
+        '--min_df', type=float, help='minimum document frequency of words kept in vocabulary', default=0.0,
+        required=False
+    )
+    parser.add_argument(
+        '--etm_batch_size_init', type=int, help='Batch size during topic modelling init', default=30,
+        required=False
+    )
+    add_bool_arg(
+        parser, 'pretrained_emb', default=False,
+        help='Use pre trained embeddings (should be pre-trained before hand)', required=False
+    )
+    parser.add_argument(
+        '--pretrained_emb_path', type=str, default=argparse.SUPPRESS,
+        help=" Path to the pretrained embeddings, required and useful if use_pretrained_emb == 'True'"
+    )
+    # ToDo : add the following parts 'texts', 'network',
+    parser.add_argument(
+        '--use', type=str, choices=['all'], help='Which part of the model to use', default='all',
+        required=False
+    )
+    parser.add_argument(
+        '--num_MC_samples', type=int, help='Number of MC samples to estimate the gradrients', default=1,
+        required=False
+    )
+
+    #parser.parse_args(['-h'])
     meta_args = parser.parse_args()
 
     print('Number of clusters Q = {}'.format(meta_args.Q),

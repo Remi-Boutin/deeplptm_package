@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import gensim
 import os
 from IPython.display import clear_output
-from functions import one_hot
+from DeepLPTM.functions import one_hot
 from ETM_raw.scripts.data_preprocessing import *
 rng = default_rng(seed = 0)
 

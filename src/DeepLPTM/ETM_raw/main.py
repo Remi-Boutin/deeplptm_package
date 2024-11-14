@@ -11,14 +11,14 @@ import math
 import random 
 import sys
 import matplotlib.pyplot as plt 
-from ETM_raw import data
+from DeepLPTM.ETM_raw import data
 import scipy.io
 
 from torch import nn, optim
 from torch.nn import functional as F
 
-from ETM_raw.etm import ETM
-from ETM_raw.utils import nearest_neighbors, get_topic_coherence, get_topic_diversity, arguments
+from DeepLPTM.ETM_raw.etm import ETM
+from DeepLPTM.ETM_raw.utils import nearest_neighbors, get_topic_coherence, get_topic_diversity, arguments
 
 
 class ETM_algo():    

@@ -22,7 +22,7 @@ def KL_Y(m, log_s, mu_Y, log_cov_Y, Q, K, M):
     assert m.shape == torch.Size([Q_2, K]), "m shape should be : [{:.0f}, {:.0f}]  but is {:}".format(Q_2, K, m.shape)
     assert log_s.shape == torch.Size([Q_2]), "log_s shape should be : [{:.0f}]  but is {:}".format(Q_2, log_s.shape)
     assert mu_Y.shape == torch.Size([M, K]), "mu_Y shape should be : [{:.0f}, {:.0f}]  but is {:}".format(M, K, mu_Y.shape)
-    assert log_cov_Y.shape == torch.Size([M, K]), "log_cov_Y shape should be : [{:.0f}, {:.0f}]  but is {:}".format(M, K, log_cov_Z.shape)
+    assert log_cov_Y.shape == torch.Size([M, K]), "log_cov_Y shape should be : [{:.0f}, {:.0f}]  but is {:}".format(M, K, log_cov_Y.shape)
 
     KL = torch.zeros( (M,Q**2)).to(device)
     for qr in range(Q**2):
@@ -146,6 +146,7 @@ class ETM(nn.Module):
     def forward(self, bows, normalized_bows, training=False, return_variational_params=False, ind=None, theta=None, aggregate=True):
         ## get \theta
         if theta is None:
+
             if return_variational_params:
                 theta, kld_theta, mu_theta, logsigma_theta = self.get_theta(normalized_bows, return_variational_params=return_variational_params, training=training)
             else:

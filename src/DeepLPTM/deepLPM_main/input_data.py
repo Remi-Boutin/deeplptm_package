@@ -7,7 +7,7 @@ Their preprocessing source was used as-is.
 '''
 import numpy as np
 import pandas as pd
-from deepLPM_main import args
+from DeepLPTM import args
 
 def parse_index_file(filename):
     index = []

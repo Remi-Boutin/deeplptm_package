@@ -84,11 +84,11 @@ def deeplptm(adj, W, Q, K, P=2,
     from torch.optim import Adam
     import torch
     from IPython.display import clear_output
-    from deepLPM_main import model as Model
-    from deepLPM_main import args
-    from ETM_raw import data
-    from ETM_raw.main import ETM_algo
-    from ETM_raw.scripts.data_preprocessing import preprocessing
+    from DeepLPTM.deepLPM_main import model as Model
+    from DeepLPTM import args
+    from DeepLPTM.ETM_raw import data
+    from DeepLPTM.ETM_raw.main import ETM_algo
+    from DeepLPTM.ETM_raw.scripts.data_preprocessing import preprocessing
     from DeepLPTM.functions import DeepLPM_format, save_results_func
     assert initialise_etm or etm_path is not None, \
         'ETM should either be initialise or the path of the initialisation should be provided.'
@@ -115,12 +115,20 @@ def deeplptm(adj, W, Q, K, P=2,
     args.num_edges = M
     args.num_clusters = Q
     args.tol = tol
-    #################### Graph parameters ####################
+
+    #########################################################
+    #                   Graph parameters                    #
+    #########################################################
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     args.device = device
     adj, adj_label, adj_norm, features, edges, indices = DeepLPM_format(adj, args)
     args.indices = indices
-    ################################ DeepLPM INIT ##################################
+
+    #####################################################
+    #                   DeepLPM INIT                    #
+    #####################################################
+
     # init model and optimizer
     model = getattr(Model, args.model)(adj_norm)
     model.to(device)  # to GPU
@@ -133,7 +141,11 @@ def deeplptm(adj, W, Q, K, P=2,
     model = model.to(device)
 
     args.num_epoch = max_iter
-    ################################ ETM INIT ##################################
+
+    #################################################
+    #                   ETM INIT                    #
+    #################################################
+
     my_etm = None
     if use in ['all', 'texts']:
         # Creation of the folder where the results are to be saved
@@ -143,15 +155,14 @@ def deeplptm(adj, W, Q, K, P=2,
                 os.makedirs(etm_path)
 
         if preprocess_texts:
-            preprocessing(W, path_save=etm_path, max_df=max_df, min_df=min_df, prop_Tr=1, vaSize = 0)
+            preprocessing(W, path_save=etm_path, max_df=max_df, min_df=min_df, prop_Tr=1, vaSize=0)
 
         if initialise_etm:
             print('Initialise ETM {}'.format(initialise_etm))
             assert os.path.exists(os.path.join(etm_path, 'vocab.pkl')), \
                 "Texts have not been pre-processed, impossible to pretrain ETM."
 
-
-            #### ETM TRAINING ####
+            # ETM TRAINING
             my_etm = ETM_algo(data_path=etm_path,
                               dataset='Texts',
                               seed=seed,
@@ -177,6 +188,10 @@ def deeplptm(adj, W, Q, K, P=2,
         normalized_bows = bows / sums
         clear_output()
 
+    #############################################################
+    #                   DEEP LPTM ESTIMATION                    #
+    #############################################################
+
     results = training_graph_vectorization(adj_label,
                                            features,
                                            edges,
@@ -195,7 +210,7 @@ def deeplptm(adj, W, Q, K, P=2,
                                            init_path=init_path,
                                            full_batch=False,
                                            device=device,
-                                          )
+                                           )
     # Saving results
     if save_results:
         save_results_func(results, save_path=save_path)
@@ -277,7 +292,7 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
     from DeepLPTM.functions import init_dissimilarity, one_hot, network_step, check_convergence
     from DeepLPTM.functions import update_analytically_Y_params, update_tau, ELBO_Loss_network
     from sklearn.metrics import adjusted_rand_score as ARI
-    assert init in ['random', 'dissimilarity', 'load', 'deeplpm'],\
+    assert init in ['random', 'dissimilarity', 'load', 'deeplpm'], \
         "init should be either 'random', 'load' 'dissimilarity', 'deeplpm' "
     assert use in ['all', 'texts', 'network'], "all should either be one of 'all', 'texts' or 'network'"
 
@@ -290,7 +305,10 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
         sums = bows.sum(1).unsqueeze(1)
         normalized_bows = bows / sums
 
-        ################################ INIT OF THE ETM PRIOR MIXTURE ON Y ##################################
+        #########################################################################
+        #                   INIT OF THE ETM PRIOR MIXTURE ON Y                  #
+        #########################################################################
+
         MV = torch.distributions.multivariate_normal.MultivariateNormal(torch.zeros(args.K),
                                                                         covariance_matrix=0.5 * torch.eye(args.K))
         etm.model.m = MV.sample((args.num_clusters ** 2,)).to(device)
@@ -314,7 +332,10 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
     store_ari_texts = torch.zeros(args.num_epoch)  # .to(device)
     total_loss = torch.zeros(args.num_epoch)
 
-    ################# Initialisation of parameters #################
+    #####################################################################
+    #                   Initialisation of parameters                    #
+    #####################################################################
+
     if init == 'random':
         from torch.distributions import Dirichlet
         dirichlet = Dirichlet(torch.ones(args.num_clusters))
@@ -352,25 +373,32 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
     etm.model.rho.requires_grad_ = False
     etm.model.alphas.requires_grad_ = False
 
-    ##########################
-    ####### PARAMETERS ESTIMATION
-    ##########################
+    ###############################################################
+    #                    PARAMETERS ESTIMATION                    #
+    ###############################################################
+
     for epoch in range(epochs):
         t = time.time()
 
-        ################# NETWORK STEP #################
+        ######################################################
+        #                    NETWORK STEP                    #
+        ######################################################
+
         if use in ['all', 'network']:
             loss_network, _, _, _, A_pred, mu_phi, log_cov_phi = network_step(tau, features,
                                                                               edges, deeplpm, args,
                                                                               optimizer, adj_label, args.P,
                                                                               device, epoch)
 
-        ################# TEXTS STEP #################
+        ####################################################
+        #                    TEXTS STEP                    #
+        ####################################################
+
         if use in ['all', 'texts']:
             etm.train_etm(training=True, verbose=False)
 
             with torch.no_grad():
-                # Creation of the KL matrix for nothing (time consuming!)
+                # Creation of the KL matrix for nothing (time-consuming!)
                 mu_Y, log_cov_Y, _ = etm.model.encode(normalized_bows)
                 etm.model.m, etm.model.log_s = update_analytically_Y_params(mu_Y, log_cov_Y,
                                                                             etm.model.m,
@@ -378,11 +406,13 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
                                                                             tau, args.indices,
                                                                             args, args.K)
 
-        ################# TAU AND PI UPDATE #################
+        ##########################################################
+        #                    TAU AND PI UPDATE                   #
+        ##########################################################
+
         pi_q = tau.sum(0) / args.num_points
 
         with torch.no_grad():
-            # kl_y = KL_Y(etm.model.m, etm.model.log_s, mu_Y, log_cov_Y, Q, K, M, args.device)
             if use in ['all', 'texts']:
                 mu_Y, _, kl_y = etm.model.encode(normalized_bows, training=True)
 
@@ -394,7 +424,11 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
                 deeplpm.gamma.data = tau.clone()
             if use in ['all', 'texts']:
                 etm.model.tau = tau.clone()
-        ################# ELBO COMPUTATION #################
+
+        ##########################################################
+        #                    ELBO COMPUTATION                    #
+        ##########################################################
+
         if use in ['all', 'network']:
             ### GET ELBO TERMS ###
             with torch.no_grad():
@@ -408,7 +442,10 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
                 # Compute the entropy like term w.r.t tau in any case
                 loss3 = torch.sum(tau * (torch.log(pi_q.unsqueeze(0)) - torch.log(tau)))
 
-        ################# STORE VALUES #################
+        ######################################################
+        #                    STORE VALUES                    #
+        ######################################################
+
         total_loss[epoch] = loss1 + loss2 - loss3 + args.num_edges * (recon_loss + kl_y)
 
         if use in ['all', 'network']:
@@ -438,10 +475,12 @@ def training_graph_vectorization(adj_label, features, edges, optimizer, etm, dee
               "recon loss texts = {:.3f}".format(recon_loss),
               "time=", "{:.2f} sec".format(time.time() - t))
 
-        #################  CHECK CONVERGENCE #################
+        ###########################################################
+        #                    CHECK CONVERGENCE                    #
+        ###########################################################
+
         if check_convergence(deeplpm.mu_k, mu_k_old, ratio=ratio, tol=tol):
             break
-        # tau_old = tau.clone()
         mu_k_old = deeplpm.mu_k.clone()
     theta, _ = etm.model.get_theta(normalized_bows)
 

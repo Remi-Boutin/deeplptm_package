@@ -1,7 +1,7 @@
 import torch 
 import numpy as np
 import os
-from ETM_raw import data
+from DeepLPTM.ETM_raw import data
 
 class arguments():
     def __init__(args_etm,
